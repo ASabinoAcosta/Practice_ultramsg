@@ -14,7 +14,7 @@ url = f"https://api.ultramsg.com/{instance}/messages/chat"
 
 headers_post = {'content-type': 'application/x-www-form-urlencoded'}
 
-payload = "token={TOKEN}&to=&body=WhatsApp API on UltraMsg.com works good"
+payload = "token={TOKEN}&to={to}&body="
 payload = payload.encode('utf8').decode('iso-8859-1')
 headers = {'content-type': 'application/x-www-form-urlencoded'}
 
