@@ -1,10 +1,11 @@
 """
 Un pequeño programa en el cual se podrán visualizar los mensajes enviados y recibidos.
-Enviar y recibir imágenes. Ver estado de los mensajes.
+Enviar y recibir imágenes o documentos. Ver estado de los mensajes.
 """
 
 import requests
 import sqlite3
+import base64
 
 # Conexión a la base de datos
 conn = sqlite3.connect('ultramsg.db')
@@ -17,14 +18,18 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS messages (
     body TEXT NOT NULL,
     status TEXT NOT NULL,
     remitente TEXT NOT NULL
-    ''')
+    )''')
+conn.commit()
 
 def get_chatid(token):
+    """
+    Para obtener el chatId del usuario.
+    """
     pass
 
 def screen(token, chatId):
     """
-    Función para mostrar los mensajes de un chat específico.
+    Para mostrar los mensajes de un chat específico.
     Se conecta a la base de datos 'ultramsg.db' y obtiene todos los mensajes
     asociados al chatId proporcionado. Los mensajes se devuelven como una lista de tuplas,
     donde cada tupla representa un mensaje con sus detalles.
@@ -37,7 +42,7 @@ def screen(token, chatId):
 
 def get_messages(token, chatId):
     """
-    
+    Para obtener los mensajes de un chat específico.
     """
     pass
 
@@ -50,9 +55,14 @@ def sent(instance, token, to):
     """
 
     def sent_img(instance, token, to):
+        """
+        Para enviar imágenes.
+        """
         url_img = f"https://api.ultramsg.com/{instance}/messages/image"
         
         img_url = input("URL de la imagen: ")
+        
+        headers_post = {'content-type': 'application/x-www-form-urlencoded'}
         
         caption = input("Pie de foto (opcional): ")
         
@@ -61,13 +71,28 @@ def sent(instance, token, to):
         payload_img = payload_img.encode('utf8')
         
         response = requests.request("POST", url_img, data=payload_img, headers=headers_post)
-        
-        return response.text
+
+        print(response.text)
+
     
     def sent_doc(instance, token, to):
+        """
+        Para enviar documentos.
+        """
         url_doc = f"https://api.ultramsg.com/{instance}/messages/document"
+
+        user = input("Local o URL: ")
+
+        if user.lower() == "local":
+            file_path = input("Ruta del archivo local: ")
+            with open(file_path, "rb") as f:
+                doc_data = f.read()
+            doc_url = f"data:application/octet-stream;base64,{base64.b64encode(doc_data).decode()}" #para tomar el archivo local sin necesidad de url
+
+        else:
+            doc_url = input("URL del archivo: ")
         
-        doc_url = input("URL del archivo: ")
+        headers_post = {'content-type': 'application/x-www-form-urlencoded'}
         
         filename = input("Nombre del archivo (con extensión): ")
 
@@ -78,9 +103,10 @@ def sent(instance, token, to):
         payload_doc = payload_doc.encode('utf8')
         
         response = requests.request("POST", url_doc, data=payload_doc, headers=headers_post)
-        
-        return response.text
 
+        print(response.text)
+
+    
     user_input = input("¿Qué vas a enviar? Imagen, archivo o mensaje: ")
     if user_input.lower() == "imagen":
         sent_img(instance, token, to)
@@ -93,6 +119,9 @@ def sent(instance, token, to):
         response = requests.request("POST", url, data=payload, headers=headers_post)
         print(response.text)
 
+
+#El programa empieza aquí
+
 instance = input("Instancia: ")
 token = input("Token: ")
 to = input("Número de teléfono (ej. +1...): ")
@@ -103,6 +132,5 @@ headers_post = {'content-type': 'application/x-www-form-urlencoded'}
 
 sent(instance, token, to)
 
-# Encontrar un orden para realizar las funciones sin problemas
 
 conn.close()
